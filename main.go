@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"c:\Users\saumondeluxe\Desktop\DevProject\SushiSync\config"
-	"c:\Users\saumondeluxe\Desktop\DevProject\SushiSync\handlers"
+	"SushiSync/config"
+	"SushiSync/handlers"
 )
 
 func main() {

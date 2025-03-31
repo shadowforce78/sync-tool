@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/saumondeluxe/SushiSync/config"
+	"SushiSync/config"
 )
 
 // UploadHandler gère les requêtes d'upload de fichiers

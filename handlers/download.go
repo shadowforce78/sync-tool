@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"c:\Users\saumondeluxe\Desktop\DevProject\SushiSync\config"
+	"SushiSync/config"
 )
 
 // DownloadHandler gère les requêtes de téléchargement de fichiers
