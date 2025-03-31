@@ -18,6 +18,7 @@ func main() {
 	// Enregistre les routes
 	http.HandleFunc("/upload", handlers.UploadHandler)
 	http.HandleFunc("/download", handlers.DownloadHandler)
+    http.HandleFunc("/list", handlers.ListHandler)
 
 	fmt.Println("Serveur démarré sur http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
