@@ -1,38 +1,49 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
 	"SushiSync/config"
 )
 
+// FileInfo représente les informations sur un fichier
+type FileInfo struct {
+	Name string `json:"name"`
+	Size int64  `json:"size"`
+}
+
+// ListHandler gère les requêtes de listage des fichiers disponibles
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	// Récupérer le répertoire de destination
-	destDir := config.DataDir
-
-	// Ouvrir le répertoire
-	dir, err := os.Open(destDir)
+	// Liste tous les fichiers dans le répertoire de données
+	files, err := os.ReadDir(config.DataDir)
 	if err != nil {
-		http.Error(w, "Erreur en ouvrant le répertoire", http.StatusInternalServerError)
-		return
-	}
-	defer dir.Close()
-
-	// Lire les fichiers dans le répertoire
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		http.Error(w, "Erreur en lisant le répertoire", http.StatusInternalServerError)
+		http.Error(w, "Erreur lors de la lecture du répertoire", http.StatusInternalServerError)
 		return
 	}
 
-	// Créer une liste HTML des fichiers
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("<h1>Liste des fichiers</h1><ul>"))
+	// Prépare la liste des informations de fichiers
+	var fileInfos []FileInfo
 	for _, file := range files {
-		fileName := file.Name()
-		w.Write([]byte("<li><a href=\"/download?file=" + fileName + "\">" + fileName + "</a></li>"))
+		if file.IsDir() {
+			continue // Ignore les sous-répertoires
+		}
+
+		info, err := file.Info()
+		if err != nil {
+			continue // Ignore les fichiers problématiques
+		}
+
+		fileInfos = append(fileInfos, FileInfo{
+			Name: file.Name(),
+			Size: info.Size(),
+		})
 	}
-	w.Write([]byte("</ul>"))
+
+	// Configure l'en-tête pour JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Encode et renvoie la liste au format JSON
+	json.NewEncoder(w).Encode(fileInfos)
 }
