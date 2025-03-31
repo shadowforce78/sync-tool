@@ -25,7 +25,7 @@ Cet outil ultra-léger permet de synchroniser des fichiers entre plusieurs machi
 ## 📌 Installation
 ### 1️⃣ Cloner le projet
 ```sh
-git clone https://github.com/tonrepo/sync-tool.git
+git clone https://github.com/shadowforce78/sync-tool.git
 cd sync-tool
 ```
 
