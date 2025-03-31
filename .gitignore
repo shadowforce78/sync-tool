@@ -1,3 +1,4 @@
 .qodo
 data/
 go.sum
+client/SushiSyncClient.exe
