@@ -1,4 +1,4 @@
-# 📂 Projet de Synchronisation de Fichiers
+# 📂 SushiSync - Synchronisation de Fichiers
 
 ## 🚀 Description
 
@@ -53,10 +53,6 @@ go run server/main.go
 go run client/main.go
 ```
 
-# SushiSync
-
-Une application pour synchroniser des fichiers entre différents appareils.
-
 ## Composants
 
 - **Serveur** : Service GO qui gère l'upload, le download et la liste des fichiers
@@ -96,11 +92,30 @@ chmod +x SushiSyncCLI-darwin-amd64
 
 ### Client GUI
 
-Le client GUI doit être compilé manuellement en raison des dépendances graphiques :
+Le client GUI doit être compilé manuellement en raison des dépendances graphiques.
 
+#### Sur Windows:
 ```bash
 cd client
-CGO_ENABLED=0 go build -tags nocgo -o SushiSyncGUI.exe
+set CGO_ENABLED=0
+go build -tags nocgo -o SushiSyncGUI.exe
+```
+
+#### Sur Linux:
+```bash
+cd client
+CGO_ENABLED=0 go build -tags nocgo -o SushiSyncGUI
+```
+
+#### Sur macOS:
+```bash
+cd client
+CGO_ENABLED=0 go build -tags nocgo -o SushiSyncGUI
+```
+
+Vous pouvez aussi utiliser le script `build.bat` fourni sur Windows pour compiler les deux clients:
+```
+client\build.bat
 ```
 
 ## Création d'une nouvelle version

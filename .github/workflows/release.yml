@@ -29,9 +29,6 @@ jobs:
         run: |
           cd client/cli
           go mod tidy
-          cd ../..
-          cd client
-          go mod tidy
 
       # Compile CLI pour Windows
       - name: Build CLI Client for Windows
@@ -57,14 +54,9 @@ jobs:
         env:
           CGO_ENABLED: 0
 
-      # Compile GUI pour Windows
-      - name: Build GUI Client for Windows
-        run: |
-          cd client
-          GOOS=windows GOARCH=amd64 go build -tags nocgo -o ../SushiSyncGUI-windows-amd64.exe
-        env:
-          CGO_ENABLED: 0
-
+      # We'll remove the GUI build from CI as it requires special environment setup
+      # Instead, we'll update the README with instructions for local builds
+      
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -77,6 +69,5 @@ jobs:
             SushiSyncCLI-windows-amd64.exe
             SushiSyncCLI-linux-amd64
             SushiSyncCLI-darwin-amd64
-            SushiSyncGUI-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
