@@ -30,11 +30,12 @@ func main() {
 	// Crée une nouvelle application Fyne
 	a := app.New()
 	w := a.NewWindow("SushiSync Client")
-	w.Resize(fyne.NewSize(600, 400))
+	w.Resize(fyne.NewSize(800, 600)) // Augmentation de la taille de la fenêtre principale
 
 	// URL du serveur
 	serverURLEntry := widget.NewEntry()
 	serverURLEntry.SetText(ServerURL)
+	serverURLEntry.MinSize = fyne.NewSize(400, 36) // Agrandissement du champ d'URL
 	serverURLLabel := widget.NewLabel("URL du serveur:")
 	serverURLContainer := container.New(layout.NewHBoxLayout(), serverURLLabel, serverURLEntry)
 
@@ -205,11 +206,19 @@ func main() {
 	buttonsContainer := container.New(layout.NewHBoxLayout(), refreshBtn, downloadBtn, uploadBtn)
 
 	// Augmente la taille du conteneur de la liste pour tous les fichiers
-	fileListContainer := container.New(layout.NewVBoxLayout(), widget.NewLabel("Fichiers disponibles:"), fileList)
-	fileListContainer.Resize(fyne.NewSize(500, 300))
+	fileListLabel := widget.NewLabel("Fichiers disponibles:")
+	fileListLabel.TextStyle = fyne.TextStyle{Bold: true}
 
+	fileList.MinSize = fyne.NewSize(780, 400) // Augmentation significative de la taille de la liste de fichiers
+
+	fileListContainer := container.New(layout.NewVBoxLayout(), fileListLabel, fileList)
+
+	// Utiliser un layout qui prend tout l'espace disponible
 	content := container.NewBorder(
-		container.NewVBox(serverURLContainer, buttonsContainer),
+		container.NewVBox(
+			serverURLContainer,
+			buttonsContainer,
+		),
 		nil, nil, nil,
 		fileListContainer,
 	)
