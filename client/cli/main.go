@@ -90,11 +90,13 @@ func listFiles() {
 		return
 	}
 
+	fmt.Printf("Nombre total de fichiers: %d\n\n", len(files))
 	fmt.Println("ID | Nom | Taille")
-	fmt.Println("---------------")
+	fmt.Println("------------------------------------------------")
 	for i, file := range files {
 		fmt.Printf("%d | %s | %d octets\n", i+1, file.Name, file.Size)
 	}
+	fmt.Println("------------------------------------------------")
 }
 
 // Télécharge un fichier depuis le serveur
