@@ -2,13 +2,13 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'  # Déclenche le workflow uniquement quand un tag version est poussé
+    branches:
+      - main  # Déclenche le workflow à chaque push sur la branche main
 
 jobs:
   build:
     name: Build and Release
-    runs-on: ubuntu-latest  # Utilise un runner Linux qui est plus léger et rapide
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,9 +18,9 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Extract tag version
-        id: tag
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Get short SHA
+        id: slug
+        run: echo "VERSION=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -55,9 +55,10 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ env.VERSION }}
+          name: Build ${{ env.VERSION }}
+          tag_name: build-${{ env.VERSION }}
           draft: false
-          prerelease: false
+          prerelease: true
           files: |
             SushiSyncCLI-windows-amd64.exe
             SushiSyncCLI-linux-amd64
