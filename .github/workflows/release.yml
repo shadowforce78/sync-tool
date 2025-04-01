@@ -1,0 +1,71 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build and Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.21'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          go mod tidy
+          cd cli
+          go mod tidy
+          cd ..
+
+      - name: Build CLI Client
+        run: |
+          cd client/cli
+          go build -o ../../SushiSyncCLI.exe
+        env:
+          CGO_ENABLED: 0
+
+      - name: Build GUI Client
+        run: |
+          cd client
+          go build -tags nocgo -o ../SushiSyncGUI.exe
+        env:
+          CGO_ENABLED: 0
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload CLI Client
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./SushiSyncCLI.exe
+          asset_name: SushiSyncCLI.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload GUI Client
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./SushiSyncGUI.exe
+          asset_name: SushiSyncGUI.exe
+          asset_content_type: application/octet-stream

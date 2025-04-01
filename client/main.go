@@ -30,33 +30,27 @@ func main() {
 	// Crée une nouvelle application Fyne
 	a := app.New()
 	w := a.NewWindow("SushiSync Client")
-	w.Resize(fyne.NewSize(600, 400))
+	w.Resize(fyne.NewSize(800, 600)) // Augmentation de la taille de la fenêtre principale
 
-	// URL du serveur
+	// URL du serveur - version améliorée avec une plus grande taille
 	serverURLEntry := widget.NewEntry()
 	serverURLEntry.SetText(ServerURL)
-	serverURLLabel := widget.NewLabel("URL du serveur:")
-	serverURLContainer := container.New(layout.NewHBoxLayout(), serverURLLabel, serverURLEntry)
+	serverURLEntry.SetPlaceHolder("http://localhost:8080")
+
+	// Création d'un label plus court
+	serverURLLabel := widget.NewLabel("Serveur:")
+
+	// Utilise un conteneur qui donne plus d'espace au champ d'entrée
+	// avec un rapport de 1:6 (1 part pour le label, 6 parts pour le champ d'entrée)
+	urlForm := container.New(layout.NewFormLayout(), serverURLLabel, serverURLEntry)
+
+	// Enveloppe le formulaire dans un conteneur avec des marges pour un meilleur aspect
+	serverURLContainer := container.NewPadded(urlForm)
 
 	// Déclare la variable files avant son utilisation
 	var files []FileInfo
-
-	// Liste des fichiers
 	var selectedID widget.ListItemID = -1
-	fileList := widget.NewList(
-		func() int { return len(files) },
-		func() fyne.CanvasObject { return widget.NewLabel("") },
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			label := obj.(*widget.Label)
-			if id < len(files) {
-				file := files[id]
-				label.SetText(fmt.Sprintf("%s (%d bytes)", file.Name, file.Size))
-			}
-		},
-	)
-	fileList.OnSelected = func(id widget.ListItemID) {
-		selectedID = id
-	}
+	var fileList *widget.List
 
 	// Fonction pour rafraîchir la liste des fichiers
 	refreshFileList := func() {
@@ -72,13 +66,44 @@ func main() {
 			return
 		}
 
+		// Réinitialiser la liste des fichiers avant de la remplir à nouveau
+		files = []FileInfo{}
+
 		err = json.NewDecoder(resp.Body).Decode(&files)
 		if err != nil {
 			dialog.ShowError(err, w)
 			return
 		}
 
+		// Afficher le nombre de fichiers pour le débogage
+		fmt.Printf("Nombre de fichiers récupérés: %d\n", len(files))
+
+		// Reset la sélection quand la liste est mise à jour
+		selectedID = -1
+
+		// Force la reconstruction complète de la liste
 		fileList.Refresh()
+	}
+	// Liste des fichiers
+	fileList = widget.NewList(
+		func() int {
+			return len(files)
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("Fichier très long pour garantir l'espace")
+		},
+		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			label := obj.(*widget.Label)
+			if id < len(files) {
+				file := files[id]
+				label.SetText(fmt.Sprintf("%s (%d bytes)", file.Name, file.Size))
+			} else {
+				label.SetText("") // Efface le texte si l'ID est hors limites
+			}
+		},
+	)
+	fileList.OnSelected = func(id widget.ListItemID) {
+		selectedID = id
 	}
 
 	// Bouton pour rafraîchir la liste
@@ -187,9 +212,31 @@ func main() {
 
 	// Organisation des widgets dans la fenêtre
 	buttonsContainer := container.New(layout.NewHBoxLayout(), refreshBtn, downloadBtn, uploadBtn)
-	fileListContainer := container.New(layout.NewVBoxLayout(), fileList)
-	content := container.NewVBox(serverURLContainer, buttonsContainer, fileListContainer)
+
+	// Augmente la taille du conteneur de la liste pour tous les fichiers
+	fileListLabel := widget.NewLabel("Fichiers disponibles:")
+	fileListLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+	// Utilise un container avec des contraintes de taille plutôt que d'affecter MinSize directement
+	fileListScroll := container.NewScroll(fileList)
+	fileListScroll.SetMinSize(fyne.NewSize(780, 400))
+
+	fileListContainer := container.New(layout.NewVBoxLayout(), fileListLabel, fileListScroll)
+
+	// Utiliser un layout qui prend tout l'espace disponible
+	content := container.NewBorder(
+		container.NewVBox(
+			serverURLContainer,
+			buttonsContainer,
+		),
+		nil, nil, nil,
+		fileListContainer,
+	)
 
 	w.SetContent(content)
+
+	// Rafraîchit la liste au démarrage
+	refreshFileList()
+
 	w.ShowAndRun()
 }
