@@ -32,12 +32,20 @@ func main() {
 	w := a.NewWindow("SushiSync Client")
 	w.Resize(fyne.NewSize(800, 600)) // Augmentation de la taille de la fenêtre principale
 
-	// URL du serveur
+	// URL du serveur - version améliorée avec une plus grande taille
 	serverURLEntry := widget.NewEntry()
 	serverURLEntry.SetText(ServerURL)
-	serverURLEntry.MinSize = fyne.NewSize(400, 36) // Agrandissement du champ d'URL
-	serverURLLabel := widget.NewLabel("URL du serveur:")
-	serverURLContainer := container.New(layout.NewHBoxLayout(), serverURLLabel, serverURLEntry)
+	serverURLEntry.SetPlaceHolder("http://localhost:8080")
+
+	// Création d'un label plus court
+	serverURLLabel := widget.NewLabel("Serveur:")
+
+	// Utilise un conteneur qui donne plus d'espace au champ d'entrée
+	// avec un rapport de 1:6 (1 part pour le label, 6 parts pour le champ d'entrée)
+	urlForm := container.New(layout.NewFormLayout(), serverURLLabel, serverURLEntry)
+
+	// Enveloppe le formulaire dans un conteneur avec des marges pour un meilleur aspect
+	serverURLContainer := container.NewPadded(urlForm)
 
 	// Déclare la variable files avant son utilisation
 	var files []FileInfo
@@ -209,9 +217,11 @@ func main() {
 	fileListLabel := widget.NewLabel("Fichiers disponibles:")
 	fileListLabel.TextStyle = fyne.TextStyle{Bold: true}
 
-	fileList.MinSize = fyne.NewSize(780, 400) // Augmentation significative de la taille de la liste de fichiers
+	// Utilise un container avec des contraintes de taille plutôt que d'affecter MinSize directement
+	fileListScroll := container.NewScroll(fileList)
+	fileListScroll.SetMinSize(fyne.NewSize(780, 400))
 
-	fileListContainer := container.New(layout.NewVBoxLayout(), fileListLabel, fileList)
+	fileListContainer := container.New(layout.NewVBoxLayout(), fileListLabel, fileListScroll)
 
 	// Utiliser un layout qui prend tout l'espace disponible
 	content := container.NewBorder(
