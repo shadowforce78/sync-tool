@@ -2,9 +2,8 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'  # Déclenche le workflow quand un tag commençant par 'v' est poussé
-
+    branches:
+      - main
 jobs:
   build:
     name: Build and Release
