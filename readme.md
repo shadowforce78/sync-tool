@@ -53,9 +53,70 @@ go run server/main.go
 go run client/main.go
 ```
 
+# SushiSync
+
+Une application pour synchroniser des fichiers entre différents appareils.
+
+## Composants
+
+- **Serveur** : Service GO qui gère l'upload, le download et la liste des fichiers
+- **Client CLI** : Interface en ligne de commande pour interagir avec le serveur
+- **Client GUI** : Interface graphique pour interagir avec le serveur (nécessite compilation manuelle)
+
+## Déploiement
+
+### Serveur
+
+Pour démarrer le serveur :
+
+```bash
+go run main.go
+```
+
+Le serveur écoute sur http://localhost:8080
+
+### Client CLI
+
+Le client CLI est compilé automatiquement par GitHub Actions et disponible en téléchargement dans les releases.
+
+Pour l'exécuter :
+
+```bash
+# Windows
+SushiSyncCLI-windows-amd64.exe
+
+# Linux
+chmod +x SushiSyncCLI-linux-amd64
+./SushiSyncCLI-linux-amd64
+
+# macOS
+chmod +x SushiSyncCLI-darwin-amd64
+./SushiSyncCLI-darwin-amd64
+```
+
+### Client GUI
+
+Le client GUI doit être compilé manuellement en raison des dépendances graphiques :
+
+```bash
+cd client
+CGO_ENABLED=0 go build -tags nocgo -o SushiSyncGUI.exe
+```
+
+## Création d'une nouvelle version
+
+Pour créer une nouvelle version et déclencher le workflow de release :
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Les versions suivantes incrémenteront le numéro (v1.0.1, v1.1.0, v2.0.0, etc.)
+
 ## 🛣️ Roadmap
 
-- [ ] **Phase 1** : Mise en place du projet et POC
+- [x] **Phase 1** : Mise en place du projet et POC
 - [ ] **Phase 2** : Détection des changements & synchro de fichiers
 - [ ] **Phase 3** : Sécurisation & optimisation
 - [ ] **Phase 4** : UI avancée et fonctionnalités bonus
