@@ -29,8 +29,11 @@ jobs:
         run: |
           cd client/cli
           go mod tidy
+          cd ../..
+          cd client
+          go mod tidy
 
-      # Compile pour Windows
+      # Compile CLI pour Windows
       - name: Build CLI Client for Windows
         run: |
           cd client/cli
@@ -38,7 +41,7 @@ jobs:
         env:
           CGO_ENABLED: 0
 
-      # Compile pour Linux
+      # Compile CLI pour Linux
       - name: Build CLI Client for Linux
         run: |
           cd client/cli
@@ -46,11 +49,19 @@ jobs:
         env:
           CGO_ENABLED: 0
 
-      # Compile pour macOS
+      # Compile CLI pour macOS
       - name: Build CLI Client for macOS
         run: |
           cd client/cli
           GOOS=darwin GOARCH=amd64 go build -o ../../SushiSyncCLI-darwin-amd64 -ldflags "-X main.version=${{ env.VERSION }}"
+        env:
+          CGO_ENABLED: 0
+
+      # Compile GUI pour Windows
+      - name: Build GUI Client for Windows
+        run: |
+          cd client
+          GOOS=windows GOARCH=amd64 go build -tags nocgo -o ../SushiSyncGUI-windows-amd64.exe
         env:
           CGO_ENABLED: 0
 
@@ -66,5 +77,6 @@ jobs:
             SushiSyncCLI-windows-amd64.exe
             SushiSyncCLI-linux-amd64
             SushiSyncCLI-darwin-amd64
+            SushiSyncGUI-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
