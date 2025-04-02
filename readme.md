@@ -50,7 +50,8 @@ go run server/main.go
 #### Client :
 
 ```sh
-go run client/main.go
+go mod tidy # Pour installer les dépendances pour le GUI 
+go run client/main.go 
 ```
 
 ## Composants
