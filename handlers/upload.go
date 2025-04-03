@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
@@ -33,16 +34,45 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	compressedPath := filePath + ".gz"
 	hashPath := filePath + ".sha256"
 
-	// Lire le contenu complet du fichier pour le compresser et calculer son hash
-	data, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+	// Si le client a déjà compressé, on traite différemment
+	if r.Header.Get("X-Client-Compressed") == "true" {
+		data, err := io.ReadAll(file)
+		if err != nil {
+			http.Error(w, "Erreur lors de la lecture du fichier compressé", http.StatusInternalServerError)
+			return
+		}
+		// Décompresser pour obtenir le contenu original
+		gr, err := gzip.NewReader(bytes.NewReader(data))
+		if err != nil {
+			http.Error(w, "Erreur lors de l'ouverture du gzip reader", http.StatusInternalServerError)
+			return
+		}
+		originalData, err := io.ReadAll(gr)
+		gr.Close()
+		if err != nil {
+			http.Error(w, "Erreur lors de la décompression", http.StatusInternalServerError)
+			return
+		}
+
+		// Calculer le hash SHA256 sur le contenu original
+		hash := sha256.Sum256(originalData)
+		hashStr := hex.EncodeToString(hash[:])
+
+		// Sauvegarder le fichier compressé (tel que reçu)
+		err = os.WriteFile(compressedPath, data, 0644)
+		if err != nil {
+			http.Error(w, "Erreur en sauvegardant le fichier compressé", http.StatusInternalServerError)
+			return
+		}
+		// Sauvegarder la valeur du hash
+		err = os.WriteFile(hashPath, []byte(hashStr), 0644)
+		if err != nil {
+			http.Error(w, "Erreur en sauvegardant le hash", http.StatusInternalServerError)
+			return
+		}
+		fmt.Fprintf(w, "Fichier %s uploadé et compressé avec succès", filename)
 		return
 	}
-
-	// Calculer le hash SHA256 du contenu original
-	hash := sha256.Sum256(data)
-	hashStr := hex.EncodeToString(hash[:])
 
 	// Créer le fichier compressé
 	out, err := os.Create(compressedPath)
@@ -52,20 +82,29 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer out.Close()
 
-	// Utiliser le niveau de compression optimal
+	// Créer le writer gzip avec compression optimale
 	gw, err := gzip.NewWriterLevel(out, gzip.BestCompression)
 	if err != nil {
 		http.Error(w, "Erreur lors de la création du writer gzip", http.StatusInternalServerError)
 		return
 	}
-	_, err = gw.Write(data)
+
+	// Créer un hasher pour calculer le hash sur le contenu original
+	hasher := sha256.New()
+	// Copier depuis file vers le gzip writer et le hasher simultanément
+	multiWriter := io.MultiWriter(gw, hasher)
+	_, err = io.Copy(multiWriter, file)
 	if err != nil {
-		http.Error(w, "Erreur lors de la compression", http.StatusInternalServerError)
+		http.Error(w, "Erreur lors de l'écriture du fichier compressé", http.StatusInternalServerError)
 		return
 	}
-	gw.Close()
+	if err := gw.Close(); err != nil {
+		http.Error(w, "Erreur lors de la clôture du writer gzip", http.StatusInternalServerError)
+		return
+	}
 
-	// Sauvegarder la valeur du hash dans un fichier
+	// Convertir le hash en chaîne hexadécimale et sauvegarder dans un fichier
+	hashStr := hex.EncodeToString(hasher.Sum(nil))
 	err = os.WriteFile(hashPath, []byte(hashStr), 0644)
 	if err != nil {
 		http.Error(w, "Erreur en sauvegardant le hash", http.StatusInternalServerError)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -164,16 +165,34 @@ func main() {
 				}
 				defer reader.Close()
 
-				var requestBody bytes.Buffer
-				multipartWriter := multipart.NewWriter(&requestBody)
-
-				fileWriter, err := multipartWriter.CreateFormFile("file", filepath.Base(reader.URI().Path()))
+				// Lire et compresser le contenu du fichier
+				var buf bytes.Buffer
+				gw, err := gzip.NewWriterLevel(&buf, gzip.BestCompression)
 				if err != nil {
 					dialog.ShowError(err, w)
 					return
 				}
+				_, err = io.Copy(gw, reader)
+				if err != nil {
+					dialog.ShowError(err, w)
+					return
+				}
+				if err := gw.Close(); err != nil {
+					dialog.ShowError(err, w)
+					return
+				}
 
-				_, err = io.Copy(fileWriter, reader)
+				var requestBody bytes.Buffer
+				multipartWriter := multipart.NewWriter(&requestBody)
+
+				// Créer le form file en utilisant le nom original avec l'extension ajoutée
+				filename := filepath.Base(reader.URI().Path())
+				formFile, err := multipartWriter.CreateFormFile("file", filename)
+				if err != nil {
+					dialog.ShowError(err, w)
+					return
+				}
+				_, err = formFile.Write(buf.Bytes())
 				if err != nil {
 					dialog.ShowError(err, w)
 					return
@@ -186,6 +205,8 @@ func main() {
 					dialog.ShowError(err, w)
 					return
 				}
+				// Indiquer au serveur que le fichier est déjà compressé
+				req.Header.Set("X-Client-Compressed", "true")
 				req.Header.Set("Content-Type", multipartWriter.FormDataContentType())
 
 				client := &http.Client{}
